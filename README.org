@@ -1,0 +1,37 @@
+* fshare
+A simple file sharing application.
+
+** Install
+Use your favorite tools. Here's an example with Nginx and php-fpm:
+
+- Copy the files to /srv/http/fshare
+- mkdir /srv/http/files
+- Setup http basic authentication
+  #+begin_src shell-script
+    htpasswd -c /etc/httpd/.htpasswd admin
+  #+end_src
+- Configure Nginx, and set size limit in /etc/nginx/nginx.conf
+  #+begin_src conf
+    location /fshare {
+        auth_basic           "Personal area";
+        auth_basic_user_file /etc/httpd/.htpasswd;
+        location ~ \.php$ {
+            include fastcgi_params;
+            fastcgi_pass        unix:/run/php-fpm/php-fpm.sock;
+            fastcgi_index       index.php;
+            fastcgi_buffers     8 16k;
+            fastcgi_buffer_size 32k;
+            fastcgi_param  DOCUMENT_ROOT   $realpath_root;
+            fastcgi_param  SCRIPT_FILENAME $realpath_root$fastcgi_script_name;
+            client_max_body_size 1G;
+        }
+    }
+  #+end_src
+- Set the upload size limit in /etc/php/php.ini
+  #+begin_src fundamental
+    upload_max_filesize = 1G;
+    post_max_size = 1G;
+  #+end_src
+
+** License
+GPL
